@@ -1,0 +1,10 @@
+{
+  "applications": {
+    "_default": {
+      "link": "todo app"
+    },
+    "todo app": {
+      "applicationId": "JpcVjth5zlPL7iH3j9AVjLN9Wd4YVeTRNiLWaMij"
+    }
+  }
+}
