@@ -20,9 +20,13 @@ var BootstrapModal = React.createClass({
         $(this.refs.root).off('hidden', this.handleHidden);
   },
   close: function() {
+        var self=this;
+        todoRouteController.navigate("/todo",{trigger:false});
         $(this.refs.root).modal('hide');
   },
   open: function() {
+        var self=this;
+        todoRouteController.navigate("/todo/"+self.props.title,{trigger:false});
         $(this.refs.root).modal('show');
   },
   render: function() {
@@ -31,9 +35,7 @@ var BootstrapModal = React.createClass({
 
     if (this.props.confirm) {
           confirmButton = (
-            <BootstrapButton
-              onClick={this.handleConfirm}
-              className="btn-primary">
+            <BootstrapButton onClick={this.handleConfirm} className="btn-primary">
               {this.props.confirm}
             </BootstrapButton>
           );
@@ -88,20 +90,22 @@ var BoxModal = React.createClass({
     },
 
     handleCancel: function() {
-		/*
-        if (confirm('Are you sure you want to cancel?')) {
-        this.refs.modal.close();
-        }*/
-        this.refs.modal.close();
+        if (confirm('Are you sure you want to detroy this Todo list?')) {
+            //tododb update 
+            this.refs.modal.close();
+        }
     },
 
     render: function() {
         var modal = null;
         var self=this;
+        console.log(" BoxModal " , self.state.title);
         modal = (
-          <BootstrapModal ref="modal"   confirm="OK"  cancel="Cancel"
+          <BootstrapModal ref="modal"   confirm="OK"  cancel="Destroy" 
             onCancel={this.handleCancel} onConfirm={this.closeModal}  title={ self.state.title}>
-                    <div id="container"> <TList title={self.state.title} /> </div>
+                    <div id="container"> 
+                        <TList title={self.state.title} /> 
+                    </div>
           </BootstrapModal>
         );
         return (
@@ -148,16 +152,17 @@ var TItems = React.createClass({
     	var self=this;	
     	if(self.state.status!="deleted"){
 	      	return (
-	      		<div style={{ background: "#"+Math.random().toString(16).slice(2, 8) , padding: "4px", margin: "6px 2px 6px 2px "}}>
-	      			<div key = {item.id}> { item.text } < /div>
+	      		<div className="itemBox">
+	      		    <div>
+                        <input type="checkbox" key = {"done"+item.id} value="done"/> 
+                        <span key = {"delete"+item.id}  onClick={this.itemUpdateStatus.bind(this, item)}> X </span>
+                    </div>
+                    <div key = {item.id}> { item.text } < /div>
 	      			<div style={{fontSize: "10px" , color: "grey"}}>
 	      				<span> Created At : {item.createdAt } </span> <br/>
 	      				<span> Updated At : {item.updatedAt } </span>
 	      			</div>
-	      			<div>
-	      				<input type="checkbox" key = {"done"+item.id} value="done" hidden/> 
-	      				<span key = {"delete"+item.id}  onClick={this.itemUpdateStatus.bind(this, item)}> X </span>
-	      			</div>
+
 	      		</div>);
       	}
   	},
@@ -178,8 +183,9 @@ var TList = React.createClass({
 
 	getInitialState: function() {
 	    return {
-	      summary: "please add something ",
+	      summary: "...",
 	      items: [],
+          filter: (<div></div>),
 	      title : this.props.title,
 	      text: '',
 	    };
@@ -187,6 +193,7 @@ var TList = React.createClass({
 
     itemCreate:function( _text  , _status, _priority){
         var self=this;
+        //todoRouteController.navigate("/todo/"+title+"/create",{trigger:true});
         var obj={
         	text			: _text,
         	status			: _status,
@@ -198,13 +205,23 @@ var TList = React.createClass({
 
     itemReadAll:function(){
     	var self=this;
+        
     	todoitemsDb.readAll( self.state.title , function(results){
     		if(results.length>0){
 	            for (var i = 0; i < results.length; i++) {
 	                self.state.items.push( self.renderItems( results[i] ) );
 	            }
+                self.state.filter=(
+                        <div>
+                            <button type="button" className="btn btn-info" >Easy</button>
+                            <button type="button" className="btn btn-warning">Medium</button>
+                            <button type="button" className="btn btn-danger">Urgent</button>
+                        </div>);
+                self.state.summary= "total "+ results.length + "items in this todo";
 	        }else{
-	        	self.state.items.push(<div> nothing so far </div>);
+	        	self.state.items.push(<div> </div>);
+                self.state.filter=(<div></div>);
+                self.state.summary="add a todo";
 	        }
         	self.forceUpdate();
     	} );
@@ -273,19 +290,26 @@ var TList = React.createClass({
    
         return ( 
             <div>    
-                <div >
-                  	{ self.state.items }
-                    <input id="textBoxItem"  />
+                <div classNme="createItemClass">
+                    <input id="textBoxItem"/>
+                    <select>
+                        <option value='easy'>Easy</option>
+                        <option value='medium'>Medium</option>
+                        <option value='urgent'>Urgent</option>
+                    </select>
+                </div>
+
+                <div className="showItemsClass">
+                    <div id="filter"> {self.state.filters} </div>
+                    <div id="items">{ self.state.items }</div>
                 </div>
                 
-                <div> 
-                  	<h4>: - </h4>
+                <div className="summaryClass"> 
                   	<div> { self.state.summary }</div>
                 </div>
             </div>    
         );
     }
-
 });
 
 

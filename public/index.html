@@ -14,12 +14,14 @@
 </body>
 
 <script>
+    var todoRouteController =  null;
     $(function(){
-        var todoRouteController = new TodoRouteController();
+        todoRouteController = new TodoRouteController();
         console.log("todoRouteController" , todoRouteController);
+        
         if (todoRouteController != undefined) {
             console.log(" starting toDoRouteController bckbone ");
-            Backbone.history.start();//{pushState:true,root: "/index.html"}  
+            Backbone.history.start({pushState:true});  
         }else{
             console.log(" problem in toDoRouteController bckbone ");
         }

@@ -42,6 +42,25 @@ body {
         background: rgba(255, 255, 255, 0.34);
 }
 
+.itemBox{
+   background: "#E4C8B0" ;
+   padding: "4px";
+   margin: "6px 2px 6px 2px "
+}
 .example {
-  margin: 20px;
+   margin: 20px;
+}
+
+.createItemClass{
+    background: #C0D2FB;
+    padding: 10px 100px 10px 10px;
+}
+
+.showItemsClass{
+    background: #F7CFDE;
+}
+
+.summaryClass{
+    background: #D3F5D3;
+    padding: 10px 100px 10px 10px;
 }

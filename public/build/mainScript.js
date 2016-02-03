@@ -14663,9 +14663,13 @@ var BootstrapModal = React.createClass({
         $(this.refs.root).off('hidden', this.handleHidden);
     },
     close: function () {
+        var self = this;
+        todoRouteController.navigate("/todo", { trigger: false });
         $(this.refs.root).modal('hide');
     },
     open: function () {
+        var self = this;
+        todoRouteController.navigate("/todo/" + self.props.title, { trigger: false });
         $(this.refs.root).modal('show');
     },
     render: function () {
@@ -14675,9 +14679,7 @@ var BootstrapModal = React.createClass({
         if (this.props.confirm) {
             confirmButton = React.createElement(
                 BootstrapButton,
-                {
-                    onClick: this.handleConfirm,
-                    className: "btn-primary" },
+                { onClick: this.handleConfirm, className: "btn-primary" },
                 this.props.confirm
             );
         }
@@ -14749,26 +14751,24 @@ var BoxModal = React.createClass({
     },
 
     handleCancel: function () {
-        /*
-              if (confirm('Are you sure you want to cancel?')) {
-              this.refs.modal.close();
-              }*/
-        this.refs.modal.close();
+        if (confirm('Are you sure you want to detroy this Todo list?')) {
+            //tododb update
+            this.refs.modal.close();
+        }
     },
 
     render: function () {
         var modal = null;
         var self = this;
+        console.log(" BoxModal ", self.state.title);
         modal = React.createElement(
             BootstrapModal,
-            { ref: "modal", confirm: "OK", cancel: "Cancel",
+            { ref: "modal", confirm: "OK", cancel: "Destroy",
                 onCancel: this.handleCancel, onConfirm: this.closeModal, title: self.state.title },
             React.createElement(
                 "div",
                 { id: "container" },
-                " ",
-                React.createElement(TList, { title: self.state.title }),
-                " "
+                React.createElement(TList, { title: self.state.title })
             )
         );
         return React.createElement(
@@ -14819,7 +14819,17 @@ var TItems = React.createClass({
         if (self.state.status != "deleted") {
             return React.createElement(
                 "div",
-                { style: { background: "#" + Math.random().toString(16).slice(2, 8), padding: "4px", margin: "6px 2px 6px 2px " } },
+                { style: { background: "#E4C8B0", padding: "4px", margin: "6px 2px 6px 2px " } },
+                React.createElement(
+                    "div",
+                    null,
+                    React.createElement("input", { type: "checkbox", key: "done" + item.id, value: "done", hidden: true }),
+                    React.createElement(
+                        "span",
+                        { key: "delete" + item.id, onClick: this.itemUpdateStatus.bind(this, item) },
+                        " X "
+                    )
+                ),
                 React.createElement(
                     "div",
                     { key: item.id },
@@ -14845,16 +14855,6 @@ var TItems = React.createClass({
                         " Updated At : ",
                         item.updatedAt,
                         " "
-                    )
-                ),
-                React.createElement(
-                    "div",
-                    null,
-                    React.createElement("input", { type: "checkbox", key: "done" + item.id, value: "done", hidden: true }),
-                    React.createElement(
-                        "span",
-                        { key: "delete" + item.id, onClick: this.itemUpdateStatus.bind(this, item) },
-                        " X "
                     )
                 )
             );
@@ -14883,8 +14883,9 @@ var TList = React.createClass({
 
     getInitialState: function () {
         return {
-            summary: "please add something ",
+            summary: "...",
             items: [],
+            filter: React.createElement("div", null),
             title: this.props.title,
             text: ''
         };
@@ -14892,6 +14893,7 @@ var TList = React.createClass({
 
     itemCreate: function (_text, _status, _priority) {
         var self = this;
+        //todoRouteController.navigate("/todo/"+title+"/create",{trigger:true});
         var obj = {
             text: _text,
             status: _status,
@@ -14903,17 +14905,40 @@ var TList = React.createClass({
 
     itemReadAll: function () {
         var self = this;
+
         todoitemsDb.readAll(self.state.title, function (results) {
             if (results.length > 0) {
                 for (var i = 0; i < results.length; i++) {
                     self.state.items.push(self.renderItems(results[i]));
                 }
+                self.state.filter = React.createElement(
+                    "div",
+                    null,
+                    React.createElement(
+                        "button",
+                        { type: "button", className: "btn btn-info" },
+                        "Easy"
+                    ),
+                    React.createElement(
+                        "button",
+                        { type: "button", className: "btn btn-warning" },
+                        "Medium"
+                    ),
+                    React.createElement(
+                        "button",
+                        { type: "button", className: "btn btn-danger" },
+                        "Urgent"
+                    )
+                );
+                self.state.summary = "total " + results.length + "items in this todo";
             } else {
                 self.state.items.push(React.createElement(
                     "div",
                     null,
-                    " nothing so far "
+                    " "
                 ));
+                self.state.filter = React.createElement("div", null);
+                self.state.summary = "add a todo";
             }
             self.forceUpdate();
         });
@@ -14995,18 +15020,47 @@ var TList = React.createClass({
             null,
             React.createElement(
                 "div",
-                null,
-                self.state.items,
-                React.createElement("input", { id: "textBoxItem" })
+                { classNme: "createItemClass" },
+                React.createElement("input", { id: "textBoxItem" }),
+                React.createElement(
+                    "select",
+                    null,
+                    React.createElement(
+                        "option",
+                        { value: "easy" },
+                        "Easy"
+                    ),
+                    React.createElement(
+                        "option",
+                        { value: "medium" },
+                        "Medium"
+                    ),
+                    React.createElement(
+                        "option",
+                        { value: "urgent" },
+                        "Urgent"
+                    )
+                )
             ),
             React.createElement(
                 "div",
-                null,
+                { className: "showItemsClass" },
                 React.createElement(
-                    "h4",
-                    null,
-                    ": - "
+                    "div",
+                    { id: "filter" },
+                    " ",
+                    self.state.filters,
+                    " "
                 ),
+                React.createElement(
+                    "div",
+                    { id: "items" },
+                    self.state.items
+                )
+            ),
+            React.createElement(
+                "div",
+                { className: "summaryClass" },
                 React.createElement(
                     "div",
                     null,
@@ -15016,7 +15070,6 @@ var TList = React.createClass({
             )
         );
     }
-
 });
 
 var TBox = React.createClass({
@@ -15114,52 +15167,101 @@ var Application = React.createClass({
             "div",
             null,
             React.createElement(
+                "header",
+                { id: "headerArea", style: { background: "orange" } },
+                React.createElement(AppHeader, null)
+            ),
+            React.createElement(
                 "div",
                 null,
-                React.createElement("div", { id: "tBoxArea" }),
-                React.createElement("div", { id: "tItemsArea" })
-            )
+                React.createElement("div", { id: "tBoxArea", style: { background: "pink" } }),
+                React.createElement("div", { id: "tItemsArea", style: { backgroud: "grey" } })
+            ),
+            React.createElement("div", { id: "tOverlayArea" })
         );
     }
 });
 var helper = {
 
-	routeHelper: function (JSXClassName, htmlElementName) {
+	routeHelper: function (JSXClassName, params, htmlElementName) {
 		console.log("route helper =-> ", JSXClassName, " : ", htmlElementName);
-		JSXClassName = React.createElement(window[JSXClassName], '');
+		JSXClassName = React.createElement(window[JSXClassName], params);
 		ReactDOM.render(JSXClassName, document.getElementById(htmlElementName));
 	}
 };
 
 var TodoRouteController = Backbone.Router.extend({
+    paramObj: {
+        contentType: null,
+        title: null,
+        sttaus: null,
+        action: null
+    },
+
     routes: {
-        "todo": "renderHome",
-        "todo/:title": "renderTodo",
+        "todo": "renderTodo",
+        "todo/:title": "renderTodoItem",
+        "todo/:title/:action": "renderTodoItemAction",
+        "todo/:title/filter/:status": "renderTodoItemStatus",
         "*path": "defaultRoute"
     },
 
-    renderHome: function () {
-        console.log(" renderHome ");
-        paramObj.contentType = 'todoHome';
-        this.navigate("/home", { trigger: true });
-        helper.routeHelper("TBox", "tBoxArea");
-        //ReactDOM.render( <TBox />, document.getElementById('tBoxArea'));
+    renderTodo: function () {
+        var self = this;
+        console.log(" renderTodo ");
+        self.paramObj.contentType = 'todoOuter';
+        this.navigate("/todo", { trigger: true });
+        helper.routeHelper("TBox", self.paramObj, "tBoxArea");
     },
 
-    renderTodo: function (title) {
-        console.log(" renderTodo ");
-        paramObj.contentType = 'todoContent';
-        paramObj.title = title;
-        this.navigate("/todo#" + title, { trigger: true });
-        helper.routeHelper("TBox", "tItemsArea");
-        //ReactDOM.render( <TBox />, document.getElementById('tItemsArea'));
+    renderTodoItem: function (title) {
+        var self = this;
+        console.log(" renderTodoItem ");
+        if (title != null) {
+            self.paramObj.contentType = 'todoContent';
+            self.paramObj.title = title;
+            this.navigate("/todo/#" + title, { trigger: true });
+        }
+        helper.routeHelper("TBox", paramObj, "tItemsArea");
+    },
+
+    renderTodoItemAction: function (title, action) {
+        var self = this;
+        console.log(" renderTodoItemAction ");
+        if (title != null && status != null) {
+            self.paramObj.contentType = 'renderTodoItemAction';
+            self.paramObj.title = title;
+            self.paramObj.action = action;
+            this.navigate("/todo/#" + title + "/#" + action, { trigger: true });
+        }
+        helper.routeHelper("TBox", self.paramObj, "tItemsArea");
+    },
+
+    renderTodoItemStatus: function (title, status) {
+        var self = this;
+        console.log(" renderTodoItemStatus ");
+        if (title != null && status != null) {
+            self.paramObj.contentType = 'todoContent';
+            self.paramObj.title = title;
+            self.paramObj.status = status;
+            this.navigate("/todo/#" + title + "/filter/#" + status, { trigger: true });
+        }
+        helper.routeHelper("TBox", self.paramObj, "tItemsArea");
     },
 
     defaultRoute: function (path) {
+        var self = this;
         console.log(" defaultRoute ");
-        this.navigate("/", { trigger: true });
-        helper.routeHelper("Application", "main_content_area");
-        //ReactDOM.render( <Application />, document.getElementById('main_content_area'));
+        helper.routeHelper("Application", self.paramObj, "main_content_area");
+        this.navigate("/todo", { trigger: true });
+    },
+
+    loadLink: function (evt) {
+        var url = $(evt.currentTarget).attr('href').replace('#', '');
+        var target = $(evt.currentTarget).attr("target");
+        evt.stopPropagation();
+        evt.preventDefault();
+        todoRouteController.navigate(url, { trigger: true });
     }
 
 });
