@@ -1,13 +1,16 @@
 
+body {
+    background-position: left top;
+    /*background-image: url(../images/minions.jpg);*/
+    background-repeat: no-repeat;
+    background-size:cover;
+}
 
 #main {
     width: 500px;
     margin: auto;
     text-align: left;
     padding: 50px 60px;
-/*  background: white;
-    border: solid #ddd;
-    border-width: 0 1px 1px 1px;*/
 }
 
 #main h1 {
@@ -33,4 +36,12 @@
     font-size: 12px;
     color: green;
     line-height: 13px;
+}
+
+#createTodoBox{
+        background: rgba(255, 255, 255, 0.34);
+}
+
+.example {
+  margin: 20px;
 }
